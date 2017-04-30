@@ -108,9 +108,6 @@ rtError pxText::setBold(bool var)
   }
   return RT_OK;
 }
-  }
-  return RT_OK; 
-}
 
 rtError pxText::setPixelSize(uint32_t v) 
 {   
@@ -206,7 +203,7 @@ void pxText::draw()
     }
     else
     {
-      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw
+      getFontResource()->renderText(mText, mPixelSize, 0, 0, msx, msy, mTextColor, mw,
                                     isItalic, isBold);
     }
   }  

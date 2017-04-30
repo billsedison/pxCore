@@ -258,7 +258,19 @@ rtError pxFont::applyBold(uint32_t &offsetX, uint32_t &offsetY)
   }
 
   FT_GlyphSlot g = mFace->glyph;
-  if (g->format == FT_GLYPH_FORMAT_BITMAP)
+  if (g->format == FT_GLYPH_FORMAT_OUTLINE)
+  {
+    FT_BBox oldBox;
+    FT_Outline_Get_CBox(&(g->outline), &oldBox);
+    FT_Outline_EmboldenXY(&(g->outline), xBold, yBold);
+    FT_BBox newBox;
+    FT_Outline_Get_CBox(&(g->outline), &newBox);
+    xBold = (newBox.xMax - newBox.xMin) - (oldBox.xMax - oldBox.xMin);
+    yBold = (newBox.yMax - newBox.yMin) - (oldBox.yMax - oldBox.yMin);
+    offsetX = xBold;
+    offsetY = yBold;
+  }
+  else if (g->format == FT_GLYPH_FORMAT_BITMAP)
   {
     FT_Bitmap_Embolden(ft, &(g->bitmap), xBold, yBold);
     offsetX = xBold;
@@ -279,7 +291,14 @@ rtError pxFont::applyItalic(FT_GlyphSlot& g)
     matrix.xy = ITALIC_ADD_RATE * 0x10000L;
   }
 
-  FT_Set_Transform( mFace, &matrix, 0 );
+  if (g->format == FT_GLYPH_FORMAT_OUTLINE)
+  {
+    FT_Outline_Transform(&g->outline, &matrix);
+  }
+  else
+  {
+    FT_Set_Transform( mFace, &matrix, 0 );  
+  }
   return RT_OK;
 }
 const GlyphCacheEntry* pxFont::getGlyph(uint32_t codePoint)
@@ -416,7 +435,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y, float
   setBold(bold);
   setItalic(italic);
   FT_Size_Metrics* metrics = &mFace->size->metrics;
-  float lineHeight = ((metrics->height >> 6) + strokeWidth) * sy;
+  float lineHeight = (metrics->height >> 6) * sy;
 
   while((codePoint = u8_nextchar((char*)text, &i)) != 0) 
   {
@@ -440,7 +459,7 @@ void pxFont::renderText(const char *text, uint32_t size, float x, float y, float
       
       pxTextureRef texture = entry->mTexture;
       pxTextureRef nullImage;
-      context.drawLabelImage(x2, y2, w, h, texture, bitmapTop, lineHeight, false, color, gradientColor, strokeColor);
+      context.drawLabelImage(x2, y2, w, h, texture, bitmapTop, lineHeight, false, color);
       x += (entry->advancedotx >> 6) * sx;
       // no change to y because we are not moving to next line yet
     }

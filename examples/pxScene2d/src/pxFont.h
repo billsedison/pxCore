@@ -27,6 +27,7 @@
 // TODO it would be nice to push this back into implemention
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_STROKER_H
 
 #include "pxScene2d.h"
 #include <map>
@@ -177,7 +178,7 @@ public:
    * @param bold is bold ?
    */
   void renderText(const char *text, uint32_t size, float x, float y, float sx, float sy, float *color, float mw,
-                  bool italic, bool bold);
+                  bool italic = false, bool bold = false);
 
   virtual void init() {}
   bool isFontLoaded() { return mInitialized;}
